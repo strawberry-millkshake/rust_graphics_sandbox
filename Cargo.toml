@@ -1,0 +1,10 @@
+[package]
+name = "rust_graphics_sandbox"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+glfw = "0.60.0"
+glm = "0.3.0"
+pollster = "0.4.0"
+wgpu = "27.0.1"
