@@ -31,12 +31,12 @@ unsafe fn convert_to_byte_array<T: Sized>(p: &T) -> &[u8] {
     }
 }
 
-pub fn make_quad(device: &wgpu::Device) -> Mesh {
+pub fn make_quad(device: &wgpu::Device, cord: Vector2<f32>) -> Mesh {
 
     let bottom_left= Vec2::new(-0.5, -0.5);
     let bottom_right= Vec2::new(0.5, -0.5);
     let top_left = Vec2::new(-0.5, 0.5);
-    let top_right= Vec2::new(0.5, 0.5);
+    let top_right= cord;
 
     let vertacies: [Vertex; 4] = [
         Vertex {position: Vec3::new(bottom_left.x, bottom_left.y, 0.0), color: Vec3::new(1.0, 0.0, 1.0)},

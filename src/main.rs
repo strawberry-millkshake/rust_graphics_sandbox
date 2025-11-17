@@ -1,5 +1,6 @@
-use glfw::{Context, fail_on_errors};
+use glfw::{Context, WindowEvent, fail_on_errors};
 use crate::graphics_backend::pipeline::build_pipeline;
+use glm::*;
 
 mod graphics_backend;
 
@@ -9,18 +10,18 @@ const WINDOW_HEIGHT: u32 = 800;
 struct Program<'a>{
     glfw: glfw::Glfw,
     window: glfw::PWindow,
+    events: glfw::GlfwReceiver<(f64, WindowEvent)>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     surface: wgpu::Surface<'a>,
     render_pipeline: wgpu::RenderPipeline,
-    quad_mesh: graphics_backend::mesh_builder::Mesh,
 }
 
 async fn setup<'a>() -> Program<'a> {
 
     let mut glfw = glfw::init(glfw::fail_on_errors!()).unwrap();
 
-    let (mut window, _events) = glfw
+    let (mut window, events) = glfw
         .create_window(
             WINDOW_WIDTH,
             WINDOW_HEIGHT,
@@ -29,6 +30,8 @@ async fn setup<'a>() -> Program<'a> {
         )
         .unwrap();
 
+    window.set_mouse_button_polling(true);
+    window.set_cursor_pos_polling(true);
     window.make_current();
 
     let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::from_env_or_default());
@@ -58,21 +61,19 @@ async fn setup<'a>() -> Program<'a> {
 
     let render_pipeline = build_pipeline(&device, &surface, &adapter);
 
-    let quad_mesh = graphics_backend::mesh_builder::make_quad(&device);
-
     Program{
         glfw: glfw,
         window: window,
         device: device,
         queue: queue,
+        events: events,
         surface: surface,
         render_pipeline: render_pipeline,
-        quad_mesh: quad_mesh,
     }
 
 }
 
-fn render(program: &Program){
+fn render(program: &Program, cord: Vector2<f32>){
 
     let frame = program.surface
         .get_current_texture()
@@ -86,6 +87,8 @@ fn render(program: &Program){
         label: Some("Command Endcoer - STRWB"),
     };
     let mut encoder = program.device.create_command_encoder(&command_encoder_description);
+
+    let quad_mesh = graphics_backend::mesh_builder::make_quad(&program.device, cord);
 
     {
         let color_attatchment = wgpu::RenderPassColorAttachment {
@@ -107,8 +110,8 @@ fn render(program: &Program){
 
         let mut render_pass = encoder.begin_render_pass(&render_pass_descriptor);
         render_pass.set_pipeline(&program.render_pipeline);
-        render_pass.set_vertex_buffer(0, program.quad_mesh.vertex_buffer.slice(..));
-        render_pass.set_index_buffer(program.quad_mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+        render_pass.set_vertex_buffer(0, quad_mesh.vertex_buffer.slice(..));
+        render_pass.set_index_buffer(quad_mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
         render_pass.draw_indexed(0..6, 0, 0..1);
     }
 
@@ -117,14 +120,39 @@ fn render(program: &Program){
 
 }
 
+fn convert_to_dnc(number: f32, window_size: f32) -> f32{
+    ((2.0*number) / window_size) - 1.0
+}
+
 async fn run(){
 
     let mut program = setup().await;
+    let mut cord = Vec2::new(0.5, 0.5);
+    let mut x_pos = 0.0;
+    let mut y_pos = 0.0;
 
     while !program.window.should_close() {
 
         program.glfw.poll_events();
-        render(&program);
+
+        for (_, event) in glfw::flush_messages(&program.events) {
+            match event {
+                glfw::WindowEvent::CursorPos(cur_x_pos, cur_y_pos) => {
+                    x_pos = convert_to_dnc(cur_x_pos as f32, program.window.get_size().0 as f32);
+                    y_pos = convert_to_dnc(cur_y_pos as f32, program.window.get_size().1 as f32);
+                },
+                glfw::WindowEvent::MouseButton(glfw::MouseButton::Button1, glfw::Action::Press, _) => {
+                    cord = Vec2::new(x_pos, -1.0 * y_pos);
+                },
+                glfw::WindowEvent::Key(glfw::Key::Escape, _, glfw::Action::Press, _) => {
+                    program.window.set_should_close(true);
+                }
+
+                _ => {}
+            }
+        }
+
+        render(&program, cord);
         program.window.swap_buffers();
     }
 
