@@ -7,6 +7,11 @@ pub struct Vertex {
     color: Vec3,
 }
 
+pub struct Mesh{
+    pub vertex_buffer: wgpu::Buffer,
+    pub index_buffer: wgpu::Buffer,
+}
+
 impl Vertex {
     pub fn get_layout() -> wgpu::VertexBufferLayout<'static> {
 
@@ -26,23 +31,42 @@ unsafe fn convert_to_byte_array<T: Sized>(p: &T) -> &[u8] {
     }
 }
 
-pub fn make_triangle(device: &wgpu::Device) -> wgpu::Buffer {
+pub fn make_quad(device: &wgpu::Device) -> Mesh {
 
-    let vertacies: [Vertex; 3] = [
-        Vertex {position: Vec3::new(-0.75, -0.75, 0.0), color: Vec3::new(1.0, 0.0, 0.0)},
-        Vertex {position: Vec3::new(0.75, -0.75, 0.0), color: Vec3::new(0.0, 1.0, 0.0)},
-        Vertex {position: Vec3::new(0.0, 0.75, 0.0), color: Vec3::new(0.0, 0.0, 1.0)},
+    let bottom_left= Vec2::new(-0.5, -0.5);
+    let bottom_right= Vec2::new(0.5, -0.5);
+    let top_left = Vec2::new(-0.5, 0.5);
+    let top_right= Vec2::new(0.5, 0.5);
+
+    let vertacies: [Vertex; 4] = [
+        Vertex {position: Vec3::new(bottom_left.x, bottom_left.y, 0.0), color: Vec3::new(1.0, 0.0, 1.0)},
+        Vertex {position: Vec3::new(bottom_right.x, bottom_right.y, 0.0), color: Vec3::new(1.0, 0.0, 0.0)},
+        Vertex {position: Vec3::new(top_left.x, top_left.y, 0.0), color: Vec3::new(0.0, 1.0, 0.0)},
+        Vertex {position: Vec3::new(top_right.x, top_right.y, 0.0), color: Vec3::new(0.0, 0.0, 1.0)},
     ];
     let vertacies_as_bytes: &[u8] = unsafe {
         convert_to_byte_array(& vertacies)
     };
 
-    let buffer_descriptor = wgpu::util::BufferInitDescriptor{
-        label: Some("triangle vertex buffer - T"),
+    let vertex_buffer_descriptor = wgpu::util::BufferInitDescriptor{
+        label: Some("quad vertex buffer - STRWB"),
         contents: &vertacies_as_bytes,
         usage: wgpu::BufferUsages::VERTEX
     };
 
-    let buffer = device.create_buffer_init(&buffer_descriptor);
-    buffer
+    let indicies: [u16; 6] = [0, 1, 2, 1, 2, 3];
+    let indacies_as_btes: &[u8] = unsafe{
+        convert_to_byte_array(& indicies)
+    };
+
+    let index_buffer_descriptor = wgpu::util::BufferInitDescriptor{
+        label: Some("index buffer - STRWB"),
+        contents: &indacies_as_btes,
+        usage: wgpu::BufferUsages::INDEX
+    };
+
+    let index_buffer = device.create_buffer_init(&index_buffer_descriptor);
+    let vertex_buffer = device.create_buffer_init(&vertex_buffer_descriptor);
+    
+    Mesh {vertex_buffer: vertex_buffer, index_buffer: index_buffer}
 }

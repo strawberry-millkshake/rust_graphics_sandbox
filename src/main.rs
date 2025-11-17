@@ -13,7 +13,7 @@ struct Program<'a>{
     queue: wgpu::Queue,
     surface: wgpu::Surface<'a>,
     render_pipeline: wgpu::RenderPipeline,
-    triangle_mesh: wgpu::Buffer,
+    quad_mesh: graphics_backend::mesh_builder::Mesh,
 }
 
 async fn setup<'a>() -> Program<'a> {
@@ -58,7 +58,7 @@ async fn setup<'a>() -> Program<'a> {
 
     let render_pipeline = build_pipeline(&device, &surface, &adapter);
 
-    let triangle_mesh = graphics_backend::mesh_builder::make_triangle(&device);
+    let quad_mesh = graphics_backend::mesh_builder::make_quad(&device);
 
     Program{
         glfw: glfw,
@@ -67,7 +67,7 @@ async fn setup<'a>() -> Program<'a> {
         queue: queue,
         surface: surface,
         render_pipeline: render_pipeline,
-        triangle_mesh: triangle_mesh,
+        quad_mesh: quad_mesh,
     }
 
 }
@@ -107,8 +107,9 @@ fn render(program: &Program){
 
         let mut render_pass = encoder.begin_render_pass(&render_pass_descriptor);
         render_pass.set_pipeline(&program.render_pipeline);
-        render_pass.set_vertex_buffer(0, program.triangle_mesh.slice(..));
-        render_pass.draw(0..3, 0..1);
+        render_pass.set_vertex_buffer(0, program.quad_mesh.vertex_buffer.slice(..));
+        render_pass.set_index_buffer(program.quad_mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+        render_pass.draw_indexed(0..6, 0, 0..1);
     }
 
     program.queue.submit(Some(encoder.finish()));
