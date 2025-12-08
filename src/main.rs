@@ -2,12 +2,13 @@ use glfw::{Context, WindowEvent, fail_on_errors};
 use crate::graphics_backend::pipeline::build_pipeline;
 use glm::*;
 
+mod renderer;
 mod graphics_backend;
 
 const WINDOW_WIDTH: u32 = 800;
 const WINDOW_HEIGHT: u32 = 800;
 
-struct Program<'a>{
+struct State<'a>{
     glfw: glfw::Glfw,
     window: glfw::PWindow,
     events: glfw::GlfwReceiver<(f64, WindowEvent)>,
@@ -17,63 +18,68 @@ struct Program<'a>{
     render_pipeline: wgpu::RenderPipeline,
 }
 
-async fn setup<'a>() -> Program<'a> {
+impl State<'_>{
 
-    let mut glfw = glfw::init(glfw::fail_on_errors!()).unwrap();
+    async fn new<'a>() -> State<'a> {
 
-    let (mut window, events) = glfw
-        .create_window(
-            WINDOW_WIDTH,
-            WINDOW_HEIGHT,
-            "hello world",
-            glfw::WindowMode::Windowed,
-        )
-        .unwrap();
+        let mut glfw = glfw::init(glfw::fail_on_errors!()).unwrap();
 
-    window.set_mouse_button_polling(true);
-    window.set_cursor_pos_polling(true);
-    window.make_current();
+        let (mut window, events) = glfw
+            .create_window(
+                WINDOW_WIDTH,
+                WINDOW_HEIGHT,
+                "hello world",
+                glfw::WindowMode::Windowed,
+            )
+            .unwrap();
 
-    let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::from_env_or_default());
-    let surface= unsafe{instance.create_surface_unsafe(wgpu::SurfaceTargetUnsafe::from_window(&window).unwrap()).unwrap()};
+        window.set_mouse_button_polling(true);
+        window.set_cursor_pos_polling(true);
+        window.make_current();
 
-    let adapter_descriptor = wgpu::RequestAdapterOptionsBase {
-        power_preference: wgpu::PowerPreference::default(),
-        compatible_surface: Some(&surface),
-        force_fallback_adapter: false,
-    };
-    let adapter = instance.request_adapter(&adapter_descriptor).await.expect("Failed to create adapter - STRWB");
+        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::from_env_or_default());
+        let surface= unsafe{instance.create_surface_unsafe(wgpu::SurfaceTargetUnsafe::from_window(&window).unwrap()).unwrap()};
 
-    let device_descriptor = wgpu::DeviceDescriptor {
-        required_features: wgpu::Features::empty(),
-        required_limits: wgpu::Limits::default(),
-        label: Some("Device - STRWB"),
-        experimental_features: wgpu::ExperimentalFeatures::disabled(),
-        memory_hints: Default::default(),
-        trace: wgpu::Trace::Off,
-    };
-    let (device, queue) = adapter.request_device(&device_descriptor).await.expect("Failed to create device - STRWB");
+        let adapter_descriptor = wgpu::RequestAdapterOptionsBase {
+            power_preference: wgpu::PowerPreference::default(),
+            compatible_surface: Some(&surface),
+            force_fallback_adapter: false,
+        };
+        let adapter = instance.request_adapter(&adapter_descriptor).await.expect("Failed to create adapter - STRWB");
 
-    let config = surface
-        .get_default_config(&adapter, window.get_size().0 as u32, window.get_size().0 as u32)
-        .unwrap();
-    surface.configure(&device, &config);
+        let device_descriptor = wgpu::DeviceDescriptor {
+            required_features: wgpu::Features::empty(),
+            required_limits: wgpu::Limits::default(),
+            label: Some("Device - STRWB"),
+            experimental_features: wgpu::ExperimentalFeatures::disabled(),
+            memory_hints: Default::default(),
+            trace: wgpu::Trace::Off,
+        };
+        let (device, queue) = adapter.request_device(&device_descriptor).await.expect("Failed to create device - STRWB");
 
-    let render_pipeline = build_pipeline(&device, &surface, &adapter);
+        let config = surface
+            .get_default_config(&adapter, window.get_size().0 as u32, window.get_size().0 as u32)
+            .unwrap();
+        surface.configure(&device, &config);
 
-    Program{
-        glfw: glfw,
-        window: window,
-        device: device,
-        queue: queue,
-        events: events,
-        surface: surface,
-        render_pipeline: render_pipeline,
+        let render_pipeline = build_pipeline(&device, &surface, &adapter);
+
+        State{
+            glfw: glfw,
+            window: window,
+            device: device,
+            queue: queue,
+            events: events,
+            surface: surface,
+            render_pipeline: render_pipeline,
+        }
+
     }
 
 }
 
-fn render(program: &Program, cord: Vector2<f32>){
+
+fn render(program: &State, cord: Vector2<f32>){
 
     let frame = program.surface
         .get_current_texture()
@@ -126,34 +132,34 @@ fn convert_to_dnc(number: f32, window_size: f32) -> f32{
 
 async fn run(){
 
-    let mut program = setup().await;
+    let mut state = State::new().await;
     let mut cord = Vec2::new(0.5, 0.5);
     let mut x_pos = 0.0;
     let mut y_pos = 0.0;
 
-    while !program.window.should_close() {
+    while !state.window.should_close() {
 
-        program.glfw.poll_events();
+        state.glfw.poll_events();
 
-        for (_, event) in glfw::flush_messages(&program.events) {
+        for (_, event) in glfw::flush_messages(&state.events) {
             match event {
                 glfw::WindowEvent::CursorPos(cur_x_pos, cur_y_pos) => {
-                    x_pos = convert_to_dnc(cur_x_pos as f32, program.window.get_size().0 as f32);
-                    y_pos = convert_to_dnc(cur_y_pos as f32, program.window.get_size().1 as f32);
+                    x_pos = convert_to_dnc(cur_x_pos as f32, state.window.get_size().0 as f32);
+                    y_pos = convert_to_dnc(cur_y_pos as f32, state.window.get_size().1 as f32);
                 },
                 glfw::WindowEvent::MouseButton(glfw::MouseButton::Button1, glfw::Action::Press, _) => {
                     cord = Vec2::new(x_pos, -1.0 * y_pos);
                 },
                 glfw::WindowEvent::Key(glfw::Key::Escape, _, glfw::Action::Press, _) => {
-                    program.window.set_should_close(true);
+                    state.window.set_should_close(true);
                 }
 
                 _ => {}
             }
         }
 
-        render(&program, cord);
-        program.window.swap_buffers();
+        render(&state, cord);
+        state.window.swap_buffers();
     }
 
 }
