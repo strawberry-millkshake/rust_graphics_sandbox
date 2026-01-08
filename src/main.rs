@@ -1,7 +1,5 @@
 use glfw::{Context, WindowEvent, fail_on_errors};
-use wgpu::util::DeviceExt;
-use crate::graphics_backend::{mesh_builder, pipeline::build_pipeline};
-use glam::{Mat4, Vec3};
+use crate::graphics_backend::{ui_renderer::UiRenderer, ui_renderer::Rect};
 
 mod graphics_backend;
 
@@ -15,11 +13,10 @@ struct State<'a>{
     device: wgpu::Device,
     queue: wgpu::Queue,
     surface: wgpu::Surface<'a>,
-    render_pipeline: wgpu::RenderPipeline,
     _config: wgpu::SurfaceConfiguration,
-    quad_mesh: mesh_builder::Mesh,
-    globals_bind_group: wgpu::BindGroup,
-    globals_buffer: wgpu::Buffer
+    ui: UiRenderer,
+    ui_pipeline: wgpu::RenderPipeline,
+    _surface_format: wgpu::TextureFormat,
 }
 
 impl State<'_>{
@@ -66,46 +63,12 @@ impl State<'_>{
             .unwrap();
         surface.configure(&device, &config);
 
-        let globals_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("globals bgl - STRWB"),
-            entries: &[wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStages::VERTEX,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
-                },
-                count: None,
-            }],
-        });
+        let surface_caps = surface.get_capabilities(&adapter);
+        let surface_format = surface_caps.formats[0];
 
-        let globals = mesh_builder::Globals {
-            projection: [[0.0; 4]; 4],
-            model: [[0.0; 4]; 4],
-        };
+        let (ui, globals_bind_group_layout) = UiRenderer::new(&device);
 
-        let globals_buffer_descriptor = wgpu::util::BufferInitDescriptor {
-            label: Some("globals buffer - STRWB"),
-            contents: bytemuck::bytes_of(&globals),
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-        };
-        let globals_buffer = device.create_buffer_init(&globals_buffer_descriptor);
-
-        let globals_bind_group_descriptor = wgpu::BindGroupDescriptor {
-            label: Some("globals bind group - STRWB"),
-            layout: &globals_bind_group_layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: globals_buffer.as_entire_binding(),
-            }],
-        };
-
-        let globals_bind_group = device.create_bind_group(&globals_bind_group_descriptor);
-
-        let render_pipeline = build_pipeline(&device, &surface, &adapter, &globals_bind_group_layout);
-
-        let quad_mesh = graphics_backend::mesh_builder::make_quad(&device);
+        let ui_pipeline = graphics_backend::pipeline::build_pipeline(&device, &globals_bind_group_layout, surface_format);
 
         State{
             glfw: glfw,
@@ -114,11 +77,10 @@ impl State<'_>{
             queue: queue,
             events: events,
             surface: surface,
-            render_pipeline: render_pipeline,
             _config: config,
-            quad_mesh: quad_mesh,
-            globals_bind_group: globals_bind_group,
-            globals_buffer: globals_buffer
+            ui: ui,
+            ui_pipeline: ui_pipeline,
+            _surface_format: surface_format,
         }
 
     }
@@ -156,11 +118,8 @@ impl State<'_>{
             };
 
             let mut render_pass = encoder.begin_render_pass(&render_pass_descriptor);
-            render_pass.set_pipeline(&self.render_pipeline);
-            render_pass.set_bind_group(0, &self.globals_bind_group, &[]);
-            render_pass.set_vertex_buffer(0, self.quad_mesh.vertex_buffer.slice(..));
-            render_pass.set_index_buffer(self.quad_mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
-            render_pass.draw_indexed(0..self.quad_mesh.index_count, 0, 0..1);
+
+            self.ui.draw(&mut render_pass, &self.ui_pipeline);
         }
 
         self.queue.submit(Some(encoder.finish()));
@@ -169,24 +128,6 @@ impl State<'_>{
 
 }
 
-fn ui_projection(width: f32, height: f32) -> Mat4 {
-    Mat4::orthographic_rh(
-        0.0,
-        width,
-        height,
-        0.0,
-        -1.0,
-        1.0,
-    )
-}
-
-fn model_for_rect(x: f32, y: f32, w: f32, h: f32) -> Mat4 {
-    Mat4::from_scale_rotation_translation(
-        Vec3::new(w, h, 1.0),
-        glam::Quat::IDENTITY,
-        Vec3::new(x, y, 0.0),
-    )
-}
 async fn run(){
 
     let mut state = State::new().await;
@@ -213,22 +154,14 @@ async fn run(){
             }
         }
 
-        let projection = ui_projection(state.window.get_size().0 as f32, state.window.get_size().1 as f32);
-        let model = model_for_rect(x_pos, y_pos, 200.0, 120.0);
+        let (w, h) = state.window.get_size();
+        state.ui.begin_frame(&state.queue, w as u32, h as u32);
 
-        let globals = mesh_builder::Globals {
-            projection: projection.to_cols_array_2d(),
-            model: model.to_cols_array_2d(),
-        };
+        // Example: draw a draggable rect and a header bar
+        state.ui.rect(Rect { x: 20.0, y: 20.0, w: 300.0, h: 40.0 }, [0.2, 0.2, 0.2, 1.0]);
+        state.ui.rect(Rect { x: x_pos, y: y_pos, w: 120.0, h: 80.0 }, [0.7, 0.2, 0.2, 0.9]);
 
-        state.queue.write_buffer(
-            &state.globals_buffer,
-            0,
-            bytemuck::bytes_of(&globals),
-        );
-
-
-        state.queue.write_buffer(&state.globals_buffer, 0, bytemuck::bytes_of(&globals));
+        state.ui.upload(&state.device, &state.queue);
 
         state.render();
     }
