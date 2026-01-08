@@ -10,7 +10,7 @@ fn get_shader_file() -> String{
     fs::read_to_string(filepath).expect("can't read source code - STRWB")
 }
 
-pub fn build_pipeline(device: &wgpu::Device, surface: &wgpu::Surface, adapter: &wgpu::Adapter) -> wgpu::RenderPipeline {
+pub fn build_pipeline(device: &wgpu::Device, surface: &wgpu::Surface, adapter: &wgpu::Adapter, globals_bind_group_layout: &wgpu::BindGroupLayout) -> wgpu::RenderPipeline {
 
     let shader_module_descriptor = wgpu::ShaderModuleDescriptor {
         label: Some("Shader Module - STRWB"),
@@ -20,7 +20,7 @@ pub fn build_pipeline(device: &wgpu::Device, surface: &wgpu::Surface, adapter: &
 
     let pipeline_layout_descriptor = wgpu::PipelineLayoutDescriptor{
         label: Some("render pipleline layout - STRWB"),
-        bind_group_layouts: &[],
+        bind_group_layouts: &[globals_bind_group_layout],
         push_constant_ranges: &[],
     };
     let pipeline_layout = device.create_pipeline_layout(&pipeline_layout_descriptor);
@@ -49,7 +49,11 @@ pub fn build_pipeline(device: &wgpu::Device, surface: &wgpu::Surface, adapter: &
         fragment: Some(wgpu::FragmentState {
             module: &shader_module,
             entry_point: Some("fs_main"),
-            targets: &[Some(swapchain_format.into())],
+            targets: &[Some(wgpu::ColorTargetState {
+                format: swapchain_format,
+                blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
             compilation_options: Default::default(),
         }),
     };

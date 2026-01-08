@@ -10,3 +10,10 @@ Sources:
     https://github.com/iced-rs/iced/blob/master/wgpu/src/lib.rs (wgpu backend for iced)
     https://blog.logrocket.com/rust-wgpu-cross-platform-graphics/ (blog post)
     https://sotrh.github.io/learn-wgpu/#what-is-wgpu (tutorial type thing)
+
+
+:D
+
+Yours Truly,
+
+Strawberry Milkshake
