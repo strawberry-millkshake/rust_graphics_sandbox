@@ -1,16 +1,19 @@
+use crate::graphics::ui_renderer::Vertex;
 use std::env::current_dir;
 use std::fs;
-use crate::graphics_backend::ui_renderer::Vertex;
 
-fn get_shader_file() -> String{
+fn get_shader_file() -> String {
     let mut filepath = current_dir().unwrap();
     filepath.push("src/shaders/shader.wgsl");
     let filepath = filepath.into_os_string().into_string().unwrap();
     fs::read_to_string(filepath).expect("can't read source code - STRWB")
 }
 
-pub fn build_pipeline(device: &wgpu::Device, globals_bind_group_layout: &wgpu::BindGroupLayout , surface_format: wgpu::TextureFormat) -> wgpu::RenderPipeline {
-
+pub fn build_pipeline(
+    device: &wgpu::Device,
+    globals_bind_group_layout: &wgpu::BindGroupLayout,
+    surface_format: wgpu::TextureFormat,
+) -> wgpu::RenderPipeline {
     let shader_module_descriptor = wgpu::ShaderModuleDescriptor {
         label: Some("Shader Module - STRWB"),
         source: wgpu::ShaderSource::Wgsl(get_shader_file().into()),
