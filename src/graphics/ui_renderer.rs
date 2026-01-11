@@ -1,3 +1,4 @@
+use crate::ui::geometry;
 use glam::Mat4;
 use wgpu::util::DeviceExt;
 
@@ -25,14 +26,6 @@ impl Vertex {
             attributes: &ATTRIBUTES,
         }
     }
-}
-
-#[derive(Clone, Copy)]
-pub struct Rect {
-    pub x: f32,
-    pub y: f32,
-    pub w: f32,
-    pub h: f32,
 }
 
 pub struct UiRenderer {
@@ -132,36 +125,44 @@ impl UiRenderer {
         queue.write_buffer(&self.globals_buffer, 0, bytemuck::bytes_of(&globals));
     }
 
-    pub fn rect(&mut self, r: Rect, color: [f32; 4]) {
-        // 4 vertices per rect
-        let base = self.vertices.len() as u16;
+    pub fn rect(&mut self, rect: &geometry::Rect) {
+        let vertex_offset = self.vertices.len() as u16;
 
-        let x0 = r.x;
-        let y0 = r.y;
-        let x1 = r.x + r.w;
-        let y1 = r.y + r.h;
+        let x0 = rect.x;
+        let y0 = rect.y;
+        let x1 = rect.x + rect.w;
+        let y1 = rect.y + rect.h;
 
-        // top-left, top-right, bottom-left, bottom-right
+        // top-left
         self.vertices.push(Vertex {
             position: [x0, y0],
-            color,
+            color: rect.color,
         });
+        //top-right
         self.vertices.push(Vertex {
             position: [x1, y0],
-            color,
+            color: rect.color,
         });
+        //bottom-left
         self.vertices.push(Vertex {
             position: [x0, y1],
-            color,
+            color: rect.color,
         });
+        //bottom-right
         self.vertices.push(Vertex {
             position: [x1, y1],
-            color,
+            color: rect.color,
         });
 
         // two triangles: (0,1,2) (1,3,2)
-        self.indices
-            .extend_from_slice(&[base, base + 1, base + 2, base + 1, base + 3, base + 2]);
+        self.indices.extend_from_slice(&[
+            vertex_offset,
+            vertex_offset + 1,
+            vertex_offset + 2,
+            vertex_offset + 1,
+            vertex_offset + 3,
+            vertex_offset + 2,
+        ]);
     }
 
     fn ensure_capacity(&mut self, device: &wgpu::Device) {

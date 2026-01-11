@@ -1,4 +1,4 @@
-use crate::graphics;
+use crate::{graphics, ui::frame::UiFrame};
 
 pub struct Graphics<'a> {
     device: wgpu::Device,
@@ -6,7 +6,7 @@ pub struct Graphics<'a> {
     surface: wgpu::Surface<'a>,
     _config: wgpu::SurfaceConfiguration,
     _surface_format: wgpu::TextureFormat,
-    pub ui: graphics::ui_renderer::UiRenderer,
+    pub ui_renderer: graphics::ui_renderer::UiRenderer,
     ui_pipeline: wgpu::RenderPipeline,
 }
 
@@ -52,7 +52,8 @@ impl Graphics<'_> {
         let surface_caps = surface.get_capabilities(&adapter);
         let surface_format = surface_caps.formats[0];
 
-        let (ui, globals_bind_group_layout) = graphics::ui_renderer::UiRenderer::new(&device);
+        let (ui_renderer, globals_bind_group_layout) =
+            graphics::ui_renderer::UiRenderer::new(&device);
 
         let ui_pipeline =
             graphics::pipeline::build_pipeline(&device, &globals_bind_group_layout, surface_format);
@@ -63,35 +64,22 @@ impl Graphics<'_> {
             surface: surface,
             _config: config,
             _surface_format: surface_format,
-            ui: ui,
+            ui_renderer: ui_renderer,
             ui_pipeline: ui_pipeline,
         }
     }
 
-    pub fn render(&mut self, width: i32, height: i32, x_pos: f32, y_pos: f32) {
-        self.ui
+    pub fn render(&mut self, frame: UiFrame, width: i32, height: i32) {
+        self.ui_renderer
             .begin_frame(&self.queue, width as u32, height as u32);
 
-        self.ui.rect(
-            graphics::ui_renderer::Rect {
-                x: 20.0,
-                y: 20.0,
-                w: 300.0,
-                h: 40.0,
-            },
-            [1.0, 0.7, 1.0, 1.0],
-        );
-        self.ui.rect(
-            graphics::ui_renderer::Rect {
-                x: x_pos,
-                y: y_pos,
-                w: 120.0,
-                h: 80.0,
-            },
-            [1.0, 1.0, 1.0, 1.0],
-        );
+        let _: Vec<_> = frame
+            .rec_vec
+            .iter()
+            .map(|x| self.ui_renderer.rect(x))
+            .collect();
 
-        self.ui.upload(&self.device, &self.queue);
+        self.ui_renderer.upload(&self.device, &self.queue);
 
         let frame = self
             .surface
@@ -127,7 +115,7 @@ impl Graphics<'_> {
                 timestamp_writes: None,
             });
 
-            self.ui.draw(&mut render_pass, &self.ui_pipeline);
+            self.ui_renderer.draw(&mut render_pass, &self.ui_pipeline);
         }
 
         self.queue.submit(Some(encoder.finish()));

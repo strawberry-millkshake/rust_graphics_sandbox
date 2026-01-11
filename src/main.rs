@@ -1,11 +1,13 @@
-// use glfw::{Context};
-
 mod graphics;
-mod window;
+mod platform;
+mod ui;
+
+use crate::graphics::renderer;
+use crate::ui::{frame::UiFrame, geometry};
 
 async fn run() {
-    let mut window = window::window::Window::new();
-    let mut graphics = graphics::graphics::Graphics::new(&mut window.window).await;
+    let mut window = platform::Window::new();
+    let mut graphics = renderer::Graphics::new(&mut window.window).await;
     let mut x_pos: f32 = 0.0;
     let mut y_pos: f32 = 0.0;
 
@@ -32,7 +34,14 @@ async fn run() {
         }
 
         let (height, width) = window.window.get_size();
-        graphics.render(height, width, x_pos, y_pos);
+        let mut frame = UiFrame::new();
+
+        let white = [1.0, 1.0, 1.0, 1.0];
+
+        let block = geometry::Rect::new(x_pos, y_pos, 50.0, 50.0, white);
+        frame.add_rec(block);
+
+        graphics.render(frame, width, height);
     }
 }
 
