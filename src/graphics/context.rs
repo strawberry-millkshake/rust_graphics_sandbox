@@ -1,6 +1,6 @@
-use crate::{graphics, ui::frame::UiFrame};
+use crate::{graphics, ui::Frame};
 
-pub struct Graphics<'a> {
+pub struct Context<'a> {
     device: wgpu::Device,
     queue: wgpu::Queue,
     surface: wgpu::Surface<'a>,
@@ -10,8 +10,8 @@ pub struct Graphics<'a> {
     ui_pipeline: wgpu::RenderPipeline,
 }
 
-impl Graphics<'_> {
-    pub async fn new<'a>(window: &glfw::PWindow) -> Graphics<'a> {
+impl Context<'_> {
+    pub async fn new<'a>(window: &glfw::PWindow) -> Context<'a> {
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::from_env_or_default());
         let surface = unsafe {
             instance
@@ -58,7 +58,7 @@ impl Graphics<'_> {
         let ui_pipeline =
             graphics::pipeline::build_pipeline(&device, &globals_bind_group_layout, surface_format);
 
-        Graphics {
+        Context {
             device: device,
             queue: queue,
             surface: surface,
@@ -69,7 +69,7 @@ impl Graphics<'_> {
         }
     }
 
-    pub fn render(&mut self, frame: UiFrame, width: i32, height: i32) {
+    pub fn render(&mut self, frame: Frame, width: i32, height: i32) {
         self.ui_renderer
             .begin_frame(&self.queue, width as u32, height as u32);
 

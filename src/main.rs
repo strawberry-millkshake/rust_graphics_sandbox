@@ -2,12 +2,11 @@ mod graphics;
 mod platform;
 mod ui;
 
-use crate::graphics::renderer;
-use crate::ui::{frame::UiFrame, geometry};
+use crate::ui::{Frame, geometry};
 
 async fn run() {
     let mut window = platform::Window::new();
-    let mut graphics = renderer::Graphics::new(&mut window.window).await;
+    let mut graphics = graphics::Context::new(&mut window.window).await;
     let mut x_pos: f32 = 0.0;
     let mut y_pos: f32 = 0.0;
 
@@ -34,7 +33,7 @@ async fn run() {
         }
 
         let (height, width) = window.window.get_size();
-        let mut frame = UiFrame::new();
+        let mut frame = Frame::new();
 
         let white = [1.0, 1.0, 1.0, 1.0];
 

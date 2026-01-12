@@ -1,14 +1,14 @@
 use crate::ui::geometry;
 
-pub struct UiFrame {
+pub struct Frame {
     pub rec_vec: Vec<geometry::Rect>,
 }
 
-impl UiFrame {
-    pub fn new() -> UiFrame {
+impl Frame {
+    pub fn new() -> Frame {
         let rec_vec = Vec::new();
 
-        UiFrame { rec_vec: rec_vec }
+        Frame { rec_vec: rec_vec }
     }
 
     pub fn add_rec(&mut self, new_rect: geometry::Rect) {

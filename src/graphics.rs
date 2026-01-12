@@ -1,3 +1,4 @@
 pub mod pipeline;
-pub mod renderer;
 pub mod ui_renderer;
+mod context;
+pub use context::Context;
