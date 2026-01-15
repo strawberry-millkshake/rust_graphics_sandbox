@@ -1,4 +1,4 @@
-pub mod pipeline;
-pub mod ui_renderer;
-mod context;
-pub use context::Context;
+mod graphics_context;
+mod pipeline;
+mod ui_renderer;
+pub use graphics_context::Context;

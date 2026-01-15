@@ -69,9 +69,9 @@ impl Context<'_> {
         }
     }
 
-    pub fn render(&mut self, frame: Frame, width: i32, height: i32) {
+    pub fn render(&mut self, frame: Frame) {
         self.ui_renderer
-            .begin_frame(&self.queue, width as u32, height as u32);
+            .begin_frame(&self.queue, frame.width, frame.height);
 
         let _: Vec<_> = frame
             .rec_vec

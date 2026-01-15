@@ -2,45 +2,28 @@ mod graphics;
 mod platform;
 mod ui;
 
-use crate::ui::{Frame, geometry};
+const WINDOW_WIDTH: u32 = 800;
+const WINDOW_HEIGHT: u32 = 800;
 
 async fn run() {
-    let mut window = platform::Window::new();
-    let mut graphics = graphics::Context::new(&mut window.window).await;
-    let mut x_pos: f32 = 0.0;
-    let mut y_pos: f32 = 0.0;
+    let mut platform = platform::Context::new(WINDOW_WIDTH, WINDOW_HEIGHT);
+    let mut graphics = graphics::Context::new(&mut platform.window.pwindow).await; //FIX!!!!! WE NEED AN INTERFACE!!!
 
-    while !window.window.should_close() {
-        window.glfw.poll_events();
+    let mut ui_context = ui::UiContext::new();
 
-        for (_, event) in glfw::flush_messages(&window.events) {
-            match event {
-                glfw::WindowEvent::CursorPos(cur_x_pos, cur_y_pos) => {
-                    x_pos = cur_x_pos as f32;
-                    y_pos = cur_y_pos as f32;
-                }
-                glfw::WindowEvent::MouseButton(
-                    glfw::MouseButton::Button1,
-                    glfw::Action::Press,
-                    _,
-                ) => {}
-                glfw::WindowEvent::Key(glfw::Key::Escape, _, glfw::Action::Press, _) => {
-                    window.window.set_should_close(true);
-                }
+    while platform.is_open() {
+        platform.update();
 
-                _ => {}
-            }
-        }
+        ui_context.add_rec(
+            platform.mouse_x,
+            platform.mouse_y,
+            50.0,
+            50.0,
+            ui::colors::WHITE,
+        );
 
-        let (height, width) = window.window.get_size();
-        let mut frame = Frame::new();
-
-        let white = [1.0, 1.0, 1.0, 1.0];
-
-        let block = geometry::Rect::new(x_pos, y_pos, 50.0, 50.0, white);
-        frame.add_rec(block);
-
-        graphics.render(frame, width, height);
+        let frame = ui_context.build_frame(platform.get_size());
+        graphics.render(frame);
     }
 }
 

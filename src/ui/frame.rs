@@ -2,16 +2,16 @@ use crate::ui::geometry;
 
 pub struct Frame {
     pub rec_vec: Vec<geometry::Rect>,
+    pub width: u32,
+    pub height: u32,
 }
 
 impl Frame {
-    pub fn new() -> Frame {
-        let rec_vec = Vec::new();
-
-        Frame { rec_vec: rec_vec }
-    }
-
-    pub fn add_rec(&mut self, new_rect: geometry::Rect) {
-        self.rec_vec.push(new_rect);
+    pub fn new(rec_vec: Vec<super::geometry::Rect>, (width, height): (u32, u32)) -> Frame {
+        Frame {
+            rec_vec: rec_vec,
+            width: width,
+            height: height,
+        }
     }
 }

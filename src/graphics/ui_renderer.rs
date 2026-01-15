@@ -128,30 +128,49 @@ impl UiRenderer {
     pub fn rect(&mut self, rect: &geometry::Rect) {
         let vertex_offset = self.vertices.len() as u16;
 
-        let x0 = rect.x;
-        let y0 = rect.y;
-        let x1 = rect.x + rect.w;
-        let y1 = rect.y + rect.h;
+        let left = rect.x;
+        let top = rect.y;
+        let right = rect.x + rect.w;
+        let bottom = rect.y + rect.h;
 
-        // top-left
         self.vertices.push(Vertex {
-            position: [x0, y0],
-            color: rect.color,
+            position: [left, top],
+            color: [
+                (rect.color.r / 255) as f32,
+                (rect.color.g / 255) as f32,
+                (rect.color.b / 255) as f32,
+                (rect.color.a / 255) as f32,
+            ],
         });
-        //top-right
+
         self.vertices.push(Vertex {
-            position: [x1, y0],
-            color: rect.color,
+            position: [right, top],
+            color: [
+                (rect.color.r / 255) as f32,
+                (rect.color.g / 255) as f32,
+                (rect.color.b / 255) as f32,
+                (rect.color.a / 255) as f32,
+            ],
         });
-        //bottom-left
+
         self.vertices.push(Vertex {
-            position: [x0, y1],
-            color: rect.color,
+            position: [left, bottom],
+            color: [
+                (rect.color.r / 255) as f32,
+                (rect.color.g / 255) as f32,
+                (rect.color.b / 255) as f32,
+                (rect.color.a / 255) as f32,
+            ],
         });
-        //bottom-right
+
         self.vertices.push(Vertex {
-            position: [x1, y1],
-            color: rect.color,
+            position: [right, bottom],
+            color: [
+                (rect.color.r / 255) as f32,
+                (rect.color.g / 255) as f32,
+                (rect.color.b / 255) as f32,
+                (rect.color.a / 255) as f32,
+            ],
         });
 
         // two triangles: (0,1,2) (1,3,2)
