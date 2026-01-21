@@ -17,34 +17,34 @@ impl Color {
     }
 }
 
-pub const WHITE: Color = Color {
+pub const _WHITE: Color = Color {
     r: 255,
     g: 255,
     b: 255,
     a: 255,
 };
-pub const _BLACK: Color = Color {
+pub const BLACK: Color = Color {
     r: 0,
     g: 0,
     b: 0,
-    a: 1,
+    a: 255,
 };
-pub const _RED: Color = Color {
-    r: 1,
+pub const RED: Color = Color {
+    r: 255,
     g: 0,
     b: 0,
-    a: 1,
+    a: 255,
 };
 
-pub const _GREEN: Color = Color {
+pub const GREEN: Color = Color {
     r: 0,
-    g: 1,
+    g: 255,
     b: 0,
-    a: 0,
+    a: 255,
 };
-pub const _BLUE: Color = Color {
+pub const BLUE: Color = Color {
     r: 0,
     g: 0,
-    b: 1,
-    a: 0,
+    b: 255,
+    a: 255,
 };
