@@ -52,11 +52,14 @@ impl Context<'_> {
         let surface_caps = surface.get_capabilities(&adapter);
         let surface_format = surface_caps.formats[0];
 
-        let (ui_renderer, globals_bind_group_layout) =
-            graphics::ui_renderer::UiRenderer::new(&device);
+        let ui_renderer = graphics::ui_renderer::UiRenderer::new(&device, &queue);
 
-        let ui_pipeline =
-            graphics::pipeline::build_pipeline(&device, &globals_bind_group_layout, surface_format);
+        let ui_pipeline = graphics::pipeline::build_pipeline(
+            &device,
+            &ui_renderer.uniform_bind_group_layout,
+            &ui_renderer.texture_bind_group_layout,
+            surface_format,
+        );
 
         Context {
             device: device,

@@ -11,7 +11,8 @@ fn get_shader_file() -> String {
 
 pub fn build_pipeline(
     device: &wgpu::Device,
-    globals_bind_group_layout: &wgpu::BindGroupLayout,
+    uniform_bind_group_layout: &wgpu::BindGroupLayout,
+    texture_bind_group_layout: &wgpu::BindGroupLayout,
     surface_format: wgpu::TextureFormat,
 ) -> wgpu::RenderPipeline {
     let shader_module_descriptor = wgpu::ShaderModuleDescriptor {
@@ -23,7 +24,7 @@ pub fn build_pipeline(
 
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("ui pipeline layout - STRWB"),
-        bind_group_layouts: &[&globals_bind_group_layout],
+        bind_group_layouts: &[&uniform_bind_group_layout, texture_bind_group_layout],
         push_constant_ranges: &[],
     });
 
