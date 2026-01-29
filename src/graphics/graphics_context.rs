@@ -76,11 +76,7 @@ impl Context<'_> {
         self.ui_renderer
             .begin_frame(&self.queue, frame.width, frame.height);
 
-        let _: Vec<_> = frame
-            .rec_vec
-            .iter()
-            .map(|x| self.ui_renderer.rect(x))
-            .collect();
+        frame.rec_vec.iter().for_each(|x| self.ui_renderer.rect(x));
 
         self.ui_renderer.upload(&self.device, &self.queue);
 

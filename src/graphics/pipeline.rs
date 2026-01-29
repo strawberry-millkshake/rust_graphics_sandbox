@@ -4,7 +4,7 @@ use std::fs;
 
 fn get_shader_file() -> String {
     let mut filepath = current_dir().unwrap();
-    filepath.push("src/shaders/shader.wgsl");
+    filepath.push("src/shaders/shader_alt.wgsl");
     let filepath = filepath.into_os_string().into_string().unwrap();
     fs::read_to_string(filepath).expect("can't read source code - STRWB")
 }
@@ -39,13 +39,24 @@ pub fn build_pipeline(
         },
         fragment: Some(wgpu::FragmentState {
             module: &shader_module,
-            entry_point: Some("fs_main"),
+            entry_point: Some("fs_main_srgb"),
+            compilation_options: Default::default(),
             targets: &[Some(wgpu::ColorTargetState {
                 format: surface_format,
-                blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+                blend: Some(wgpu::BlendState {
+                    color: wgpu::BlendComponent {
+                        src_factor: wgpu::BlendFactor::SrcAlpha,
+                        dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                        operation: wgpu::BlendOperation::Add,
+                    },
+                    alpha: wgpu::BlendComponent {
+                        src_factor: wgpu::BlendFactor::OneMinusDstAlpha,
+                        dst_factor: wgpu::BlendFactor::One,
+                        operation: wgpu::BlendOperation::Add,
+                    },
+                }),
                 write_mask: wgpu::ColorWrites::ALL,
             })],
-            compilation_options: Default::default(),
         }),
         primitive: wgpu::PrimitiveState::default(),
         depth_stencil: None,
