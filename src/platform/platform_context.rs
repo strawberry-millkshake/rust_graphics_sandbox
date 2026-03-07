@@ -65,7 +65,6 @@ impl Context {
             glfw::WindowEvent::CursorPos(cur_x_pos, cur_y_pos) => {
                 self.set_mouse_pos(*cur_x_pos as f32, *cur_y_pos as f32);
             }
-
             glfw::WindowEvent::MouseButton(glfw::MouseButton::Button1, glfw::Action::Press, _) => {
                 self.set_mouse_click(true);
             }
@@ -77,8 +76,14 @@ impl Context {
             ) => {
                 self.set_mouse_click(false);
             }
+            glfw::WindowEvent::FramebufferSize(cur_width, cur_height) => {
+               self.window_width = *cur_width as u32;
+               self.window_height = *cur_height as u32;
+            }
 
-            _ => {}
+            e => {
+                println!("{:?}", e);
+            }
         }
     }
 }

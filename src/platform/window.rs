@@ -10,6 +10,10 @@ impl Window {
     pub fn new(window_width: u32, window_height: u32) -> Window {
         let mut glfw = glfw::init_no_callbacks().unwrap();
 
+        glfw.window_hint(glfw::WindowHint::Resizable(true));
+
+        glfw.window_hint(glfw::WindowHint::ClientApi(glfw::ClientApiHint::NoApi));
+
         let (mut window, events) = glfw
             .create_window(
                 window_width,
@@ -22,6 +26,7 @@ impl Window {
         window.set_mouse_button_polling(true);
         window.set_cursor_pos_polling(true);
         window.make_current();
+        window.set_framebuffer_size_polling(true);
 
         Window {
             glfw: glfw,

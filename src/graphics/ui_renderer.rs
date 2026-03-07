@@ -303,8 +303,6 @@ impl UiRenderer {
     }
 
     fn ensure_capacity(&mut self, device: &wgpu::Device) {
-
-
         if self.vertices.len() > self.vertex_buffer_capacity {
             while self.vertices.len() > self.vertex_buffer_capacity {
                 self.vertex_buffer_capacity *= 2;
@@ -331,39 +329,44 @@ impl UiRenderer {
     }
 
     pub fn upload(&mut self, device: &wgpu::Device, queue: &wgpu::Queue) {
-
         self.vertices.push(Vertex {
             position: [50.0, 25.0],
-            color: [255;4],
+            color: [255; 4],
             uv: [0.4131759, 0.99240386],
         });
         self.vertices.push(Vertex {
             position: [25.0, 50.0],
-            color: [255;4],
+            color: [255; 4],
             uv: [0.0048659444, 0.1234],
         });
         self.vertices.push(Vertex {
             position: [40.0, 75.0],
-            color: [255;4],
+            color: [255; 4],
             uv: [0.28081453, 0.05060294],
         });
         self.vertices.push(Vertex {
             position: [60.0, 60.0],
-            color: [255;4],
+            color: [255; 4],
             uv: [0.85967, 0.1526709],
         });
         self.vertices.push(Vertex {
             position: [75.0, 40.0],
-            color: [255;4],
+            color: [255; 4],
             uv: [0.9414737, 0.7347359],
         });
 
         let vertex_offset = self.vertices.len() as u16;
 
         self.indices.extend_from_slice(&[
-            vertex_offset, vertex_offset+1, vertex_offset+4,
-            vertex_offset+1, vertex_offset+2, vertex_offset+4,
-            vertex_offset+2, vertex_offset+3, vertex_offset+4,
+            vertex_offset,
+            vertex_offset + 1,
+            vertex_offset + 4,
+            vertex_offset + 1,
+            vertex_offset + 2,
+            vertex_offset + 4,
+            vertex_offset + 2,
+            vertex_offset + 3,
+            vertex_offset + 4,
             0,
         ]);
 
