@@ -62,13 +62,13 @@ impl Context<'_> {
         );
 
         Context {
-            device: device,
-            queue: queue,
-            surface: surface,
+            device,
+            queue,
+            surface,
             _config: config,
             _surface_format: surface_format,
-            ui_renderer: ui_renderer,
-            ui_pipeline: ui_pipeline,
+            ui_renderer,
+            ui_pipeline,
         }
     }
 
