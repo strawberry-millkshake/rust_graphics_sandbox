@@ -9,9 +9,9 @@ pub struct Frame {
 impl Frame {
     pub fn new(rec_vec: Vec<super::geometry::Rect>, (width, height): (u32, u32)) -> Frame {
         Frame {
-            rec_vec: rec_vec,
-            width: width,
-            height: height,
+            rec_vec,
+            width,
+            height,
         }
     }
 }

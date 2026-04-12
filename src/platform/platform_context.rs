@@ -16,9 +16,9 @@ impl Context {
         let window = platform::Window::new(window_width, window_height);
 
         Context {
-            window: window,
-            window_width: window_width,
-            window_height: window_height,
+            window,
+            window_width,
+            window_height,
             mouse_x: 0.0,
             mouse_y: 0.0,
             mouse_is_clicked: false,

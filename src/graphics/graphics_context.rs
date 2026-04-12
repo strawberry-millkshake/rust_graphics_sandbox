@@ -1,4 +1,7 @@
-use crate::{graphics, ui::Frame};
+use crate::{
+    graphics,
+    ui::{self, Frame},
+};
 
 pub struct Context<'a> {
     device: wgpu::Device,
@@ -75,6 +78,19 @@ impl Context<'_> {
     pub fn render(&mut self, frame: Frame) {
         self.ui_renderer
             .begin_frame(&self.queue, frame.width, frame.height);
+
+        let image_test = ui::geometry::Image {
+            x: 200.0,
+            y: 200.0,
+            w: 200.0,
+            h: 200.0,
+        };
+
+        let image_bind_group =
+            self.ui_renderer
+                .generate_image_bind_group("hello_kitty_with_a_gun.jpg", &self.device, &self.queue);
+
+        self.ui_renderer.image(&image_test, image_bind_group);
 
         frame.rec_vec.iter().for_each(|x| self.ui_renderer.rect(x));
 

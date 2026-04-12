@@ -7,7 +7,7 @@ const WINDOW_HEIGHT: u32 = 800;
 
 async fn run() {
     let mut platform = platform::Context::new(WINDOW_WIDTH, WINDOW_HEIGHT);
-    let mut graphics = graphics::Context::new(&mut platform.window.pwindow).await;
+    let mut graphics = graphics::Context::new(&platform.window.pwindow).await;
     let mut ui = ui::UiContext::new();
 
     let red_select_block = ui.new_rec(10.0, 10.0, 20.0, 20.0, ui::colors::RED);

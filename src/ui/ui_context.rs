@@ -6,21 +6,20 @@ pub struct UiContext {
 }
 
 impl UiContext {
-    pub fn new<'a>() -> UiContext {
+    pub fn new() -> UiContext {
         let elements: HashMap<u32, super::geometry::Rect> = HashMap::new();
-        UiContext { elements: elements }
+        UiContext { elements }
     }
 
     pub fn build_frame(&mut self, window_size: (u32, u32)) -> Frame {
         let draw_list: Vec<super::geometry::Rect> = self.elements.iter().map(|x| *(x.1)).collect();
-        let frame = Frame::new(draw_list, window_size);
-        frame
+        Frame::new(draw_list, window_size)
     }
 
     pub fn new_rec(&mut self, x: f32, y: f32, w: f32, h: f32, color: super::colors::Color) -> u32 {
         let new_rec = super::geometry::Rect::new(x, y, w, h, color);
         let id = self.elements.len() as u32;
-        self.elements.insert(id, new_rec.clone());
+        self.elements.insert(id, new_rec);
         id
     }
 

@@ -29,9 +29,9 @@ impl Window {
         window.set_framebuffer_size_polling(true);
 
         Window {
-            glfw: glfw,
+            glfw,
             pwindow: window,
-            events: events,
+            events,
         }
     }
 
