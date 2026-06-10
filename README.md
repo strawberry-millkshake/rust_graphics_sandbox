@@ -1,6 +1,6 @@
-..attempting... to teach myself wpgu in rust.
-
-A bit brutal but we're working through it.
+The start of a smiple graphics library.
+I wanted to learn about rendering and its always nice to have code without major dependencies.
+Fully hobby project so I don't have a ton of time to work on it..
 
 Sources:
 
